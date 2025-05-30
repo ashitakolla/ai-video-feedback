@@ -15,22 +15,24 @@ uploaded_file = st.file_uploader("🎥 Upload your pickleball stroke video", typ
 
 if uploaded_file:
     # Save uploaded video to disk
-    with open("input_video.mp4", "wb") as f:
+    input_path = "input_video.mp4"
+    output_path = "output_video.mp4"
+    with open(input_path, "wb") as f:
         f.write(uploaded_file.read())
 
     # Show original video
     st.markdown("### 🔍 Original Video")
-    st.video("input_video.mp4")
+    st.video(input_path)
 
     # Process the video
     with st.spinner("⏳ Analyzing your stroke..."):
-        feedbacks, score = process_video("input_video.mp4", "output_video.mp4")
+        feedbacks, score, accepted, rejected = process_video(input_path, output_path)
 
     st.success("✅ Analysis complete!")
 
     # Show processed video
     st.markdown("### 📊 Pose Overlay Video")
-    st.video("output_video.mp4")
+    st.video(output_path)
 
     # Show score
     st.markdown(f"### 🏅 Score: `{score}/100`")
@@ -50,3 +52,15 @@ if uploaded_file:
             st.write(f"- {fb}")
     else:
         st.info("No major issues detected.")
+
+    # --- Show accepted frames ---
+    if accepted:
+        st.subheader("✅ Good Posture Frames")
+        for i, frame in enumerate(accepted[:5]):
+            st.image(frame, caption=f"Accepted Frame {i+1}", use_container_width=True)
+
+    # --- Show rejected frames with reasons ---
+    if rejected:
+        st.subheader("❌ Rejected Posture Frames")
+        for i, (frame, reason) in enumerate(rejected[:5]):
+            st.image(frame, caption=f"Rejected Frame {i+1}: {reason}", use_container_width=True)
